@@ -1,0 +1,3 @@
+# squeezelite
+
+A Squeezlite docker
