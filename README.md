@@ -1,3 +1,3 @@
 # squeezelite
 
-A Squeezlite docker
+A Squeezelite docker
