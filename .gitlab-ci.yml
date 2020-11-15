@@ -1,0 +1,50 @@
+variables:
+  CI_IMAGE: $REGISTRY/$REGISTRY_USER/$CI_PROJECT_NAME
+  CI_BUILD_ARCHS: linux/arm64,linux/arm/v7
+
+stages:
+  - lint
+  - build
+  - push
+
+hadolint:
+  stage: lint
+  image: hadolint/hadolint
+  script:
+    - hadolint
+        --ignore DL3008
+        Dockerfile
+
+.before_script_template:
+  before_script:
+    - echo -n $REGISTRY_TOKEN | docker login -u $REGISTRY_USER --password-stdin $REGISTRY
+    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - docker buildx create --use
+
+build:
+  extends: .before_script_template
+  image: jdrouet/docker-with-buildx:latest
+  stage: build
+  services:
+    - docker:dind
+  script:
+    - docker buildx build 
+      --platform "$CI_BUILD_ARCHS"
+      --cache-from "$CI_IMAGE"
+      --build-arg BUILDKIT_INLINE_CACHE=1
+      --pull --tag "$CI_IMAGE:$CI_COMMIT_REF_SLUG" .
+
+push:
+  extends: .before_script_template
+  image: jdrouet/docker-with-buildx:latest
+  stage: build
+  services:
+    - docker:dind
+  script:
+    - docker buildx build
+      --platform "$CI_BUILD_ARCHS"
+      --cache-from "$CI_IMAGE"
+      --build-arg BUILDKIT_INLINE_CACHE=1
+      --pull --tag "$CI_IMAGE:latest" --push .
+  only:
+    - master
