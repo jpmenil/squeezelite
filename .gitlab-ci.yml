@@ -25,6 +25,8 @@ build:
   extends: .before_script_template
   image: jdrouet/docker-with-buildx:latest
   stage: build
+  except:
+    - master
   services:
     - docker:dind
   script:
@@ -37,7 +39,9 @@ build:
 push:
   extends: .before_script_template
   image: jdrouet/docker-with-buildx:latest
-  stage: build
+  stage: push
+  only:
+    - master
   services:
     - docker:dind
   script:
@@ -46,5 +50,3 @@ push:
       --cache-from "$CI_IMAGE"
       --build-arg BUILDKIT_INLINE_CACHE=1
       --pull --tag "$CI_IMAGE:latest" --push .
-  only:
-    - master
