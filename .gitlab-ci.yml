@@ -47,6 +47,4 @@ push:
   script:
     - docker buildx build
       --platform "$CI_BUILD_ARCHS"
-      --cache-from "$CI_IMAGE"
-      --build-arg BUILDKIT_INLINE_CACHE=1
       --pull --tag "$CI_IMAGE:latest" --push .
